@@ -15,27 +15,21 @@ import (
 )
 
 func main() {
-	// Set Gin to release mode
 	gin.SetMode(gin.ReleaseMode)
 
-	// Initialize Gin router
 	router := gin.Default()
 
-	// Configure trusted proxies
 	if err := router.SetTrustedProxies(nil); err != nil {
 		log.Fatal("Failed to set trusted proxies:", err)
 	}
 
-	// Initialize MongoDB connection with timeout
 	log.Printf("Connecting to MongoDB at %s", config.MongoURI)
 
-	// Set MongoDB client options with longer timeout and direct connection
 	clientOptions := options.Client().
 		ApplyURI(config.MongoURI).
 		SetConnectTimeout(15 * time.Second).
 		SetServerSelectionTimeout(15 * time.Second)
 
-	// Try to connect with retries
 	var client *mongo.Client
 	var err error
 
@@ -46,13 +40,12 @@ func main() {
 		log.Printf("Connection attempt %d...", attempts)
 		client, err = mongo.Connect(ctx, clientOptions)
 		if err == nil {
-			// Successfully connected
 			break
 		}
 		log.Printf("Connection attempt %d failed: %v", attempts, err)
 
 		if attempts < 3 {
-			time.Sleep(2 * time.Second) // Wait before retrying
+			time.Sleep(2 * time.Second)
 		}
 	}
 
@@ -66,7 +59,6 @@ func main() {
 		}
 	}()
 
-	// Ping the database to verify connection
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -75,10 +67,8 @@ func main() {
 	}
 	log.Println("Successfully connected to MongoDB Atlas")
 
-	// Set up routes
 	routes.SetupRoutes(router, client)
 
-	// Start the server
 	log.Println("Server running on http://localhost:8080")
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal("Failed to start server:", err)

@@ -16,14 +16,12 @@ import (
 )
 
 func SetupRoutes(router *gin.Engine, client *mongo.Client) {
-	// Public routes
 	router.POST("/register", controllers.Register(client))
 	log.Println("Registered route: POST /register")
 
 	router.POST("/login", controllers.Login(client))
 	log.Println("Registered route: POST /login")
 
-	// Protected routes
 	protected := router.Group("/")
 	protected.Use(middlewares.AuthMiddleware())
 	{
@@ -31,7 +29,6 @@ func SetupRoutes(router *gin.Engine, client *mongo.Client) {
 		log.Println("Registered route: GET /profile (protected)")
 	}
 
-	// Add a test route to verify the server is running
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
@@ -39,7 +36,6 @@ func SetupRoutes(router *gin.Engine, client *mongo.Client) {
 	})
 	log.Println("Registered route: GET /ping")
 
-	// Add a temporary route to reset a password for troubleshooting
 	router.POST("/reset-password", func(c *gin.Context) {
 		var data struct {
 			Email       string `json:"email" binding:"required"`
@@ -63,13 +59,11 @@ func SetupRoutes(router *gin.Engine, client *mongo.Client) {
 			return
 		}
 
-		// Hash the new password
 		if err := user.HashPassword(data.NewPassword); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 			return
 		}
 
-		// Update the password in the database
 		ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
@@ -88,7 +82,6 @@ func SetupRoutes(router *gin.Engine, client *mongo.Client) {
 	})
 	log.Println("Registered temporary route: POST /reset-password")
 
-	// Add a test endpoint for password verification
 	router.POST("/test-password", func(c *gin.Context) {
 		var data struct {
 			Email    string `json:"email"`
@@ -112,7 +105,6 @@ func SetupRoutes(router *gin.Engine, client *mongo.Client) {
 			return
 		}
 
-		// Try verification and return detailed results
 		log.Printf("TEST - Raw password provided: '%s'", data.Password)
 		result := user.CheckPassword(data.Password)
 

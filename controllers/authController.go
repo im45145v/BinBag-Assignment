@@ -20,7 +20,6 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.Println("Register endpoint hit")
 
-		// Read request body for debugging
 		bodyBytes, err := c.GetRawData()
 		if err != nil {
 			log.Printf("Error reading request body: %v", err)
@@ -28,27 +27,21 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Log the raw request body
 		log.Printf("Raw request body: %s", string(bodyBytes))
 
-		// Since we consumed the body, we need to restore it
 		c.Request.Body = NewBodyReader(bodyBytes)
 
-		// Create a user from request body
 		var user models.User
 		var requestData map[string]interface{}
 
-		// Try to parse the request body into a map first to debug
 		if err := c.ShouldBindJSON(&requestData); err != nil {
 			log.Printf("Error binding JSON to map: %v", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input format", "details": err.Error()})
 			return
 		}
 
-		// Log what we received
 		log.Printf("Parsed request data: %+v", requestData)
 
-		// Check if password exists and is not empty in the request
 		passwordVal, exists := requestData["password"]
 		if !exists {
 			log.Printf("Password field missing from request")
@@ -56,7 +49,6 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Check password type and value
 		passwordStr, ok := passwordVal.(string)
 		if !ok {
 			log.Printf("Password is not a string type: %T", passwordVal)
@@ -64,7 +56,6 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Trim the password and check if it's empty
 		passwordStr = strings.TrimSpace(passwordStr)
 		if passwordStr == "" {
 			log.Printf("Password is empty or contains only whitespace")
@@ -72,8 +63,6 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Now parse the body into the actual user struct
-		// We need to restore the body again
 		c.Request.Body = NewBodyReader(bodyBytes)
 		if err := c.ShouldBindJSON(&user); err != nil {
 			log.Printf("Error binding JSON to user struct: %v", err)
@@ -81,31 +70,25 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Ensure password is set in the user object
 		user.Password = passwordStr
 		log.Printf("Password successfully parsed, length: %d", len(user.Password))
 
-		// Generate a new ObjectID for the user
 		user.ID = primitive.NewObjectID()
 
-		// Hash the password
 		if err := user.HashPassword(user.Password); err != nil {
 			log.Printf("Error hashing password: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 			return
 		}
 
-		// Ensure password is set in the user object after hashing
 		if user.Password == "" {
 			log.Printf("Error: Password is empty after hashing")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Password storage failed"})
 			return
 		}
 
-		// Get database collection
 		collection := client.Database(config.DatabaseName).Collection(config.UsersCollection)
 
-		// Check if email already exists
 		var existingUser models.User
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -120,7 +103,6 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Insert user into the database
 		ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
@@ -131,7 +113,6 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Generate JWT token
 		token, err := utils.GenerateToken(user.ID.Hex(), user.Email)
 		if err != nil {
 			log.Printf("Error generating token: %v", err)
@@ -139,7 +120,6 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Return success response with token
 		c.JSON(http.StatusCreated, gin.H{
 			"message": "User registered successfully",
 			"token":   token,
@@ -147,7 +127,6 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 	}
 }
 
-// Add helper function to create a new reader from bytes
 type bodyReader struct {
 	*strings.Reader
 }
@@ -164,7 +143,6 @@ func Login(client *mongo.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log.Println("Login endpoint hit")
 
-		// Use ShouldBindJSON for consistency with Register endpoint
 		var credentials struct {
 			Email    string `json:"email"`
 			Password string `json:"password"`
@@ -176,7 +154,6 @@ func Login(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Basic validation
 		if credentials.Email == "" || credentials.Password == "" {
 			log.Printf("Missing required fields")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Email and password are required"})
@@ -186,7 +163,6 @@ func Login(client *mongo.Client) gin.HandlerFunc {
 		log.Printf("Credentials parsed successfully - Email: %s, Password length: %d",
 			credentials.Email, len(credentials.Password))
 
-		// Find user by email
 		collection := client.Database(config.DatabaseName).Collection(config.UsersCollection)
 		var user models.User
 
@@ -202,10 +178,8 @@ func Login(client *mongo.Client) gin.HandlerFunc {
 
 		log.Printf("User found, validating password")
 
-		// Make sure to log stored password hash for debugging
 		log.Printf("DEBUG - Stored hash in DB: %s", user.Password)
 
-		// Check password with proper validation
 		if !user.CheckPassword(credentials.Password) {
 			log.Printf("Password check failed for user: %s", credentials.Email)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
@@ -214,7 +188,6 @@ func Login(client *mongo.Client) gin.HandlerFunc {
 
 		log.Printf("Password verified successfully for user: %s", credentials.Email)
 
-		// Generate JWT token
 		token, err := utils.GenerateToken(user.ID.Hex(), user.Email)
 		if err != nil {
 			log.Printf("Error generating token: %v", err)
@@ -237,7 +210,6 @@ func GetProfile(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		// Find user by ID
 		collection := client.Database(config.DatabaseName).Collection(config.UsersCollection)
 		var user models.User
 
