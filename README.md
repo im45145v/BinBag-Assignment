@@ -1,4 +1,3 @@
-
 # BinBag-Assignment
 
 A RESTful API for user authentication and profile management built with Go, Gin, and MongoDB.
@@ -51,7 +50,9 @@ This project provides a simple API for user registration, login, and profile man
   {
     "name": "John Doe",
     "email": "john@example.com",
-    "password": "password123"
+    "password": "password123",
+    "bio": "Software developer",
+    "profile_picture": "https://example.com/profile.jpg"
   }
   ```
 - **Success Response**:
@@ -212,7 +213,7 @@ Provides utility functions for JWT:
 ```bash
 curl -X POST http://localhost:8080/register \
 -H "Content-Type: application/json" \
--d '{"name":"John Doe","email":"john@example.com","password":"password123"}'
+-d '{"name":"John Doe","email":"john@example.com","password":"password123", "bio": "Software developer", "profile_picture": "https://example.com/profile.jpg"}'
 ```
 
 #### Login
@@ -245,3 +246,60 @@ The API returns appropriate HTTP status codes and error messages in JSON format:
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+
+---
+
+## Docker Deployment
+
+### Prerequisites
+- Install [Docker](https://www.docker.com/get-started).
+- Install [Docker Compose](https://docs.docker.com/compose/install/).
+
+### Steps
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/im45145v/BinBag-Assignment.git
+   cd BinBag-Assignment
+   ```
+
+2. Build the Docker image:
+   ```bash
+   docker build -t binbag-assignment .
+   ```
+
+3. Run the Docker container:
+   ```bash
+   docker run -p 8080:8080 binbag-assignment
+   ```
+
+4. The server will start on `http://localhost:8080`.
+
+### Using Docker Compose
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/im45145v/BinBag-Assignment.git
+   cd BinBag-Assignment
+   ```
+
+2. Create a `.env` file in the root directory and set the environment variables:
+   ```env
+   MONGO_URI=mongodb://mongo:27017
+   DB_NAME=binbag_db
+   USERS_COLLECTION=users
+   JWT_SECRET_KEY=your_jwt_secret_key
+   ```
+
+3. Start the services using Docker Compose:
+   ```bash
+   docker-compose up
+   ```
+
+4. The server will start on `http://localhost:8080` and MongoDB will be available on `mongodb://localhost:27017`.
+
+5. To stop the services, press `Ctrl+C` and run:
+   ```bash
+   docker-compose down
+   ```
+

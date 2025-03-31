@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - MONGO_URI=${MONGO_URI:-mongodb://localhost:27017}
+      - DB_NAME=${DB_NAME:-binbag_db}
+      - USERS_COLLECTION=${USERS_COLLECTION:-users}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your_default_jwt_secret_key}
+    ports:
+      - "8080:8080"
+
+  mongo:
+    image: mongo:latest
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME:-root}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:-example}
+    ports:
+      - "27017:27017"

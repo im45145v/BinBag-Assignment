@@ -8,6 +8,8 @@ var (
 	MongoURI        = getEnv("MONGO_URI", "mongodb://localhost:27017")
 	DatabaseName    = getEnv("DB_NAME", "binbag_db")
 	UsersCollection = getEnv("USERS_COLLECTION", "users")
+	Bio             = getEnv("BIO", "default_bio")
+	ProfilePicture  = getEnv("PROFILE_PICTURE", "default_profile_picture_url")
 )
 
 var (
