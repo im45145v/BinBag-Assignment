@@ -87,6 +87,14 @@ func Register(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
+		 // Handle bio and profile_picture fields
+		if bio, ok := requestData["bio"].(string); ok {
+			user.Bio = bio
+		}
+		if profilePicture, ok := requestData["profile_picture"].(string); ok {
+			user.ProfilePicture = profilePicture
+		}
+
 		collection := client.Database(config.DatabaseName).Collection(config.UsersCollection)
 
 		var existingUser models.User
@@ -223,6 +231,13 @@ func GetProfile(client *mongo.Client) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, user)
+		c.JSON(http.StatusOK, gin.H{
+			"id":              user.ID.Hex(),
+			"name":            user.Name,
+			"email":           user.Email,
+			"address":         user.Address,
+			"bio":             user.Bio,
+			"profile_picture": user.ProfilePicture,
+		})
 	}
 }

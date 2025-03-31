@@ -1,6 +1,6 @@
 module github.com/im45145v/BinBag-Assignment
 
-go 1.24.1
+go 1.23
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
