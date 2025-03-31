@@ -27,6 +27,9 @@ func SetupRoutes(router *gin.Engine, client *mongo.Client) {
 	{
 		protected.GET("/profile", controllers.GetProfile(client))
 		log.Println("Registered route: GET /profile (protected)")
+
+		protected.POST("/update-profile", controllers.UpdateProfile(client))
+		log.Println("Registered route: POST /update-profile (protected)")
 	}
 
 	router.GET("/ping", func(c *gin.Context) {

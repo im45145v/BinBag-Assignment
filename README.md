@@ -123,6 +123,39 @@ This project provides a simple API for user registration, login, and profile man
   - **Code**: 404 Not Found
   - **Content**: `{"error": "User not found"}`
 
+#### Update User Profile
+- **URL**: `/update-profile`
+- **Method**: `POST`
+- **Auth Required**: Yes (Bearer Token)
+- **Headers**:
+  ```
+  Authorization: Bearer <JWT_TOKEN>
+  ```
+- **Request Body**:
+  ```json
+  {
+    "name": "John Doe",
+    "address": "123 Main St",
+    "bio": "Software developer",
+    "profile_picture": "https://example.com/profile.jpg"
+  }
+  ```
+- **Success Response**:
+  - **Code**: 200 OK
+  - **Content**:
+    ```json
+    {
+      "message": "Profile updated successfully"
+    }
+    ```
+- **Error Response**:
+  - **Code**: 400 Bad Request
+  - **Content**: `{"error": "Invalid input format"}`
+  - **Code**: 401 Unauthorized
+  - **Content**: `{"error": "Authorization header is required"}`
+  - **Code**: 500 Internal Server Error
+  - **Content**: `{"error": "Failed to update profile"}`
+
 ---
 
 ## Code Documentation
@@ -151,6 +184,12 @@ Contains the following handlers:
 
 ---
 
+### `/controllers/userController.go`
+Contains the following handler:
+1. **UpdateProfile**: Handles user profile updates by validating and updating user fields like `name`, `address`, `bio`, and `profile_picture`.
+
+---
+
 ### `/middlewares/authMiddleware.go`
 Defines the `AuthMiddleware`:
 - Validates the JWT token from the `Authorization` header.
@@ -170,7 +209,7 @@ Defines the `User` struct:
 ### `/routes/routes.go`
 Registers API routes:
 - Public routes: `/register`, `/login`.
-- Protected routes: `/profile` (requires JWT authentication).
+- Protected routes: `/profile`, `/update-profile` (requires JWT authentication).
 
 ---
 
@@ -227,6 +266,14 @@ curl -X POST http://localhost:8080/login \
 ```bash
 curl -X GET http://localhost:8080/profile \
 -H "Authorization: Bearer <JWT_TOKEN>"
+```
+
+#### Update Profile
+```bash
+curl -X POST http://localhost:8080/update-profile \
+-H "Authorization: Bearer <JWT_TOKEN>" \
+-H "Content-Type: application/json" \
+-d '{"name":"John Doe","address":"123 Main St","bio":"Software developer","profile_picture":"https://example.com/profile.jpg"}'
 ```
 
 ---
