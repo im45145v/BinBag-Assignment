@@ -1,7 +1,8 @@
+
 # BinBag-Assignment
 
 A RESTful API for user authentication and profile management built with Go, Gin, and MongoDB.
-
+[Postman Documentation](https://www.postman.com/cryosat-candidate-5965552/binbag/collection/r8lr2x3/api-documentation-reference?origin=tab-menu)
 ## Overview
 
 This project provides a simple API for user registration, login, and profile management. It uses the following technologies:
